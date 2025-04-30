@@ -8,9 +8,23 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const apiKeys = [
+  { AccessKey: process.env.AWS_ACCESS_KEY_ID, SecretKey: process.env.AWS_SECRET_ACCESS_KEY },
+  { AccessKey: process.env.AWS_ACCESS_KEY_ID_2, SecretKey: process.env.AWS_SECRET_ACCESS_KEY_2 } // Add your second API keys here
+];
+
+let currentApiKeyIndex = 0;
+
 // Enable CORS and JSON parsing
 app.use(cors());
 app.use(express.json());
+
+// Function to switch between API keys
+function getCurrentApiKey() {
+  const apiKey = apiKeys[currentApiKeyIndex];
+  currentApiKeyIndex = (currentApiKeyIndex + 1) % apiKeys.length; // Rotate through the keys
+  return apiKey;
+}
 
 // Delay function to throttle API requests
 function delay(ms) {
@@ -30,14 +44,16 @@ app.post('/search', async (req, res) => {
     // Delay to avoid hitting rate limits
     await delay(1000); // Wait 1 second between requests
 
+    const { AccessKey, SecretKey } = getCurrentApiKey(); // Get the current API key
+
     // Make API call to Amazon PAAPI
     const data = await amazonPaapi.SearchItems({
       Keywords: keyword,
       PartnerTag: process.env.AMAZON_PARTNER_TAG,
       PartnerType: 'Associates',
       Marketplace: 'www.amazon.in',
-      AccessKey: process.env.AWS_ACCESS_KEY_ID,
-      SecretKey: process.env.AWS_SECRET_ACCESS_KEY,
+      AccessKey,
+      SecretKey,
       ItemCount: 10, // Limit to first 10 items
       Resources: ['Images.Primary.Medium', 'ItemInfo.Title', 'Offers.Listings.Price']
     });

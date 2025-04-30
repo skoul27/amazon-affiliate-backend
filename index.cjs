@@ -31,6 +31,13 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// Exponential backoff for retrying on rate limit (429)
+async function handleRateLimit(retryCount = 0) {
+  const delayTime = Math.pow(2, retryCount) * 1000; // Exponentially increasing delay (2^retryCount * 1000 ms)
+  console.log(`Rate limit hit. Retrying in ${delayTime / 1000}s...`);
+  await delay(delayTime);
+}
+
 // Search endpoint
 app.post('/search', async (req, res) => {
   const { keyword } = req.body;
@@ -69,6 +76,7 @@ app.post('/search', async (req, res) => {
   } catch (err) {
     // Handle 429 error (too many requests)
     if (err.message.includes('429')) {
+      await handleRateLimit(); // Retry the request with exponential backoff
       return res.status(429).json({ error: 'Too many requests, please try again later.' });
     }
     console.error(err);

@@ -8,8 +8,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors()); // Enable CORS
-app.use(express.json()); // Enable JSON parsing
+app.use(cors());
+app.use(express.json());
 
 app.post('/search', async (req, res) => {
   const { keyword } = req.body;
@@ -21,11 +21,11 @@ app.post('/search', async (req, res) => {
   try {
     const data = await amazonPaapi.SearchItems({
       Keywords: keyword,
-      PartnerTag: process.env.skoul27-21,
+      PartnerTag: process.env.AMAZON_PARTNER_TAG,
       PartnerType: 'Associates',
       Marketplace: 'www.amazon.in',
-      AccessKey: process.env.AKPA5O46561745912142,
-      SecretKey: process.env.47b9oAEAjNWCq1xOjq6Yb0V9roPjio98iB9D64/j,
+      AccessKey: process.env.AWS_ACCESS_KEY_ID,
+      SecretKey: process.env.AWS_SECRET_ACCESS_KEY,
       ItemCount: 10,
       Resources: ['Images.Primary.Medium', 'ItemInfo.Title', 'Offers.Listings.Price']
     });
